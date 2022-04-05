@@ -1,9 +1,20 @@
 # blog/routes.py
 
+from crypt import methods
+from pickle import TRUE
 from flask import render_template, request, session, flash, redirect, url_for
 from blog import app
 from blog.models import Entry, db
 from blog.forms import EntryForm, LoginForm
+import functools
+
+def login_required(view_func):
+      @functools.wraps(view_func) # funckja w funkcji i dekorator na drugą funkcją
+      def check_permissions(*args, **kwargs):
+            if session.get('logged_in'):
+                  return view_func(*args,**kwargs)
+            return redirect(url_for('login', next=request.path))
+      return check_permissions
 
 # dla zwykłego wyświetlania i dodawania z konsoli
 @app.route("/")
@@ -31,6 +42,7 @@ def create_entry():
       return render_template("entry_form.html", form=form, errors=errors)"""
 
 @app.route("/edit-post/<int:entry_id>", methods = ['GET', 'POST'])
+@login_required
 def edit_entry(entry_id=0):
       errors = None
       if entry_id == 0:
@@ -90,3 +102,9 @@ def logout():
             session.clear()
             flash('You are now logged out.', 'success')
       return redirect(url_for('index'))
+
+@app.route("/drafts/", methods = ['GET'])
+@login_required
+def list_drafts():
+      drafts = Entry.query.filter_by(is_published = False).order_by(Entry.pub_date.desc())
+      return render_template("drafts.html", drafts=drafts)
