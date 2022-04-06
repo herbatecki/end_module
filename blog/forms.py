@@ -22,3 +22,6 @@ class EntryForm(FlaskForm):
     title = StringField('title', validators=[DataRequired()])
     body = TextAreaField('content', validators=[DataRequired()])
     is_published = BooleanField('published?')
+    # delete = SubmitField("Delete", validators=delete())
+
+

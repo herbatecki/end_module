@@ -1,7 +1,5 @@
 # blog/routes.py
 
-from crypt import methods
-from pickle import TRUE
 from flask import render_template, request, session, flash, redirect, url_for
 from blog import app
 from blog.models import Entry, db
@@ -108,3 +106,31 @@ def logout():
 def list_drafts():
       drafts = Entry.query.filter_by(is_published = False).order_by(Entry.pub_date.desc())
       return render_template("drafts.html", drafts=drafts)
+
+@app.route("/delete-post/<int:entry_id>", methods = ['POST'])
+@login_required
+def delete_entry(entry_id):
+      delete = Entry.query.filter_by(id=entry_id).first_or_404()
+      form = EntryForm(obj=delete)
+      if request.method == 'POST':
+            if form.validate_on_submit():
+                  db.session.delete(delete)
+                  db.session.commit()
+                  flash("succes")
+      return render_template("drafts.html", form=form)
+      
+"""@app.route('/delete-post/<int:entry_id>', methods = ['POST'])
+@login_required
+def delete_entry(entry_id):
+      # entry_id = request.form['id']
+      purpose = request.form['purpose']
+      remuw = Entry.query.filter_by(id= entry_id).first_or_404()
+      errors = None
+      if purpose == 'delete':
+            db.session.delete(remuw)
+            db.session.commit()
+            flash('Your post is now deleted')
+            return render_template('drafts.html', remuw=remuw)
+      else:
+            errors=remuw.errors
+"""
